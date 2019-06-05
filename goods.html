@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+			
+        *{margin: 0;padding: 0;}
+        h2{margin: 20px 0;}
+        
+        #cont{width: 1000px;margin: 10px auto;border: solid 1px black;overflow: hidden;}
+        .box{width: 250px;float: left;border: solid 1px black;box-sizing: border-box;text-align: center;}
+        .box img{width: 200px;}
+        .box p{line-height: 20px;height: 40px;overflow: hidden;margin: 10px 0;}
+        .box span{display: block;}
+        .box em{width: 100px;height: 30px;line-height: 30px;display: block;margin: 10px auto;font-size:14px;color: #fff;background:#88f;border-radius: 6px;cursor: pointer;}
+        
+    </style>
+</head>
+<body>
+        <h2>商品列表<small><a href="car.html">去结算</a></small></h2>
+		<div id="cont">
+			<p>商城正在维修，暂时没有商品出售...</p>
+		</div>
+</body>
+    <script src="js/ajax.js"></script>
+    <script src="js/cookie.js"></script>
+    <script>
+        class List{
+            constructor(){
+                this.cont=document.getElementById("cont");
+                this.url="http://localhost/shundian/data/goods.json"
+
+                this.init();
+                this.addEvent();
+            }
+            init(){
+                var that=this;
+                ajax({
+                    url:this.url,
+                    success:function(res){
+                        // console.log(res);
+                        that.res=JSON.parse(res);
+                        that.display();
+                    }
+                })
+            }
+            display(){
+                // console.log(this.res);
+                var str="";
+                for(var i=0;i<this.res.length;i++){
+                    str+=`<div class="box" index="${this.res[i].goodsId}">
+                            <img src="${this.res[i].src}"/> 
+                            <p>${this.res[i].name}</p>
+                            <span>${this.res[i].price}</span>
+                            <em class="btn">加入购物车</em>
+                        </div>`
+                }
+                this.cont.innerHTML=str;
+                
+            }
+            addEvent(){
+                var that=this;
+                this.cont.addEventListener("click",function(eve){
+                    var e=eve|| window.event;
+                    var target=e.target||e.srcElement;
+                    if(target.className=="btn"){
+                        that.id=target.parentNode.getAttribute("index");
+                        that.setCookie();
+                    }
+                })
+            }
+            setCookie(){
+                this.goods=getCookie("shangpin");
+                if(this.goods){
+                    var onoff=true;
+                    this.goods=JSON.parse(this.goods);
+                    for(var i=0;i<this.goods.length;i++){
+                        if(this.goods[i].id==this.id){
+                            this.goods[i].num ++;
+                            onoff=false;
+                        }
+                    }
+                    if(onoff){
+                        this.goods.push({
+                            id:this.id,
+                            num:1
+                        })
+                    }
+                }else{
+                    this.goods=[{
+                        id:this.id,
+                        num:1
+                    }]
+                }
+                setCookie("shangpin",JSON.stringify(this.goods),{
+                    expires:3
+                })
+            }
+        }
+        
+        new List ();
+    </script>
+</html>
